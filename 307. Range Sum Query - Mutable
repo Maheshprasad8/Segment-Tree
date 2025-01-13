@@ -1,0 +1,73 @@
+
+Given an integer array nums, handle multiple queries of the following types:
+Update the value of an element in nums.
+Calculate the sum of the elements of nums between indices left and right inclusive where left <= right.
+Implement the NumArray class:
+
+NumArray(int[] nums) Initializes the object with the integer array nums.
+void update(int index, int val) Updates the value of nums[index] to be val.
+int sumRange(int left, int right) Returns the sum of the elements of nums between indices left and right inclusive (i.e. nums[left] + nums[left + 1] + ... + nums[right]).
+ 
+.........................................................1.Build Segment Tree 2.Update Segment Tree 3.Range Sum Query...............................................................
+class NumArray {
+public:
+ vector<int> segmentTree;
+    int n;
+    void buildTree(vector<int>& nums, int i, int l, int r) {
+        if (l == r) {
+            segmentTree[i] = nums[l];
+        } else {
+            int mid = l + (r - l) / 2;
+            buildTree(nums, 2 * i + 1, l, mid);
+            buildTree(nums, 2 * i + 2, mid + 1, r);
+
+            segmentTree[i] = segmentTree[2 * i + 1] + segmentTree[2 * i + 2];
+        }
+    }
+    void updateTree(int idx, int val, int i, int l, int r) {
+        if (l == r) {
+            segmentTree[i] = val;
+        } else {
+            int mid = l + (r - l) / 2;
+            if (idx <= mid) {
+                updateTree(idx, val, 2 * i + 1, l, mid);
+
+            } else {
+                updateTree(idx, val, 2 * i + 2, mid + 1, r);
+            }
+            segmentTree[i] = segmentTree[2 * i + 1] + segmentTree[2 * i + 2];
+        }
+    }
+    int Query(int left, int right, int i, int l, int r) {
+        if (l > right || r < left) {
+            return 0;
+        }
+        if (l >= left && r <= right) {
+            return segmentTree[i];
+        }
+        int mid = l + (r - l) / 2;
+        int leftsum = Query(left, right, 2 * i + 1, l, mid);
+        int rightsum = Query(left, right, 2 * i + 2, mid + 1, r);
+        return leftsum + rightsum;
+    }
+
+    NumArray(vector<int>& nums) {
+         n = nums.size();
+        segmentTree.resize(4 * n);
+        buildTree(nums,0, 0, n - 1);
+    }
+
+    void update(int index, int val) 
+    { updateTree(index, val, 0, 0, n - 1); }
+
+    int sumRange(int left, int right){
+         return Query(left, right, 0, 0, n - 1); 
+         }
+};
+
+/**
+ * Your NumArray object will be instantiated and called as such:
+ * NumArray* obj = new NumArray(nums);
+ * obj->update(index,val);
+ * int param_2 = obj->sumRange(left,right);
+ */
